@@ -734,7 +734,10 @@ namespace GaoToolkit
                         return;
                     }
                     _canUseCtrlC = false;
-                    KeyCtrlCPressed(range);
+                    if (_coreWindow.GetKeyState(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down))
+                    {
+                        KeyCtrlCPressed(range);
+                    }
                     break;
                 case VirtualKey.V:
                     if (!_canUseCtrlV)
@@ -742,15 +745,21 @@ namespace GaoToolkit
                         return;
                     }
                     _canUseCtrlV = false;
-                    KeyCtrlVPressed(range);
+                    if (_coreWindow.GetKeyState(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down))
+                    {
+                        KeyCtrlVPressed(range);
+                    }
                     break;
                 case VirtualKey.X:
-                    if (!_canUseCtrlV)
+                    if (!_canUseCtrlX)
                     {
                         return;
                     }
                     _canUseCtrlX = false;
-                    KeyCtrlXPressed(range);
+                    if (_coreWindow.GetKeyState(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down))
+                    {
+                        KeyCtrlXPressed(range);
+                    }
                     break;
             }
         }
