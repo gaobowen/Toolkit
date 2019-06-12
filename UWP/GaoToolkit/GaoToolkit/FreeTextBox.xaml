@@ -9,12 +9,13 @@
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400"
+    Name="DllFreeTextBox"
     Loaded="UserControl_Loaded"
     Unloaded="UserControl_Unloaded"
     SizeChanged="UserControl_SizeChanged">
 
     <Grid Background="AliceBlue">
-        <canvas:CanvasControl x:Name="canvas"
+        <canvas:CanvasControl x:Name="MyWin2dCanvas"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Stretch"
                               Draw="Canvas_Draw"
