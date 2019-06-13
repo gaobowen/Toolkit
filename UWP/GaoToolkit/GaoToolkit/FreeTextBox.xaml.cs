@@ -46,9 +46,12 @@ namespace GaoToolkit
         CanvasVerticalAlignment _canvasVerticalAlignment = CanvasVerticalAlignment.Top;
         CanvasTextDirection _textDirection = CanvasTextDirection.LeftToRightThenTopToBottom;
         CanvasHorizontalAlignment _canvasHorizontalAlignment = CanvasHorizontalAlignment.Left;
+        float _canvasTextOpacity = 1;
         bool _isSelfAdaption = false;
         Vector2 _caretPosition = new Vector2(0, 0);
         Vector2 _caretEndPosition = new Vector2(0, 0);
+        float _drawOffsetX = 0;
+        float _drawOffsetY = 0;
         Matrix3x2 _uiAdapt = Matrix3x2.Identity;
         Matrix3x2 _uiAdaptInvert = Matrix3x2.Identity;
 
@@ -92,7 +95,7 @@ namespace GaoToolkit
                 }
             }
         }
-        
+
         public bool IsBold
         {
             get
@@ -127,7 +130,7 @@ namespace GaoToolkit
             }
             set
             {
-                _canvasFontSize = value< 1f ? 1f : value;
+                _canvasFontSize = value < 1f ? 1f : value;
                 RaiseProperty("FontSize");
             }
         }
@@ -189,8 +192,8 @@ namespace GaoToolkit
             }
             set
             {
-                _textDirection = 
-                    value ? CanvasTextDirection.LeftToRightThenTopToBottom 
+                _textDirection =
+                    value ? CanvasTextDirection.LeftToRightThenTopToBottom
                     : CanvasTextDirection.TopToBottomThenRightToLeft;
                 UpdateTextUI();
             }
@@ -242,6 +245,8 @@ namespace GaoToolkit
             }
         }
 
+
+
         public Matrix3x2 UIAdapt
         {
             get
@@ -277,13 +282,13 @@ namespace GaoToolkit
 
             PointerEntered += (s, e) =>
             {
-                Window.Current.CoreWindow.PointerCursor 
+                Window.Current.CoreWindow.PointerCursor
                     = new CoreCursor(CoreCursorType.IBeam, 0);
             };
 
             PointerExited += (s, e) =>
             {
-                Window.Current.CoreWindow.PointerCursor 
+                Window.Current.CoreWindow.PointerCursor
                     = new CoreCursor(CoreCursorType.Arrow, 0);
             };
 
@@ -294,8 +299,8 @@ namespace GaoToolkit
 
 
             //不同的方法获取焦点
-            //_coreWindow.PointerPressed += CoreWindow_PointerPressed;
-            DoubleTapped += FreeTextBox_DoubleTapped;
+            _coreWindow.PointerPressed += CoreWindow_PointerPressed;
+            //DoubleTapped += FreeTextBox_DoubleTapped;
 
             CoreTextServicesManager manager = CoreTextServicesManager.GetForCurrentView();
             _editContext = manager.CreateEditContext();
@@ -319,7 +324,7 @@ namespace GaoToolkit
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            
+
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
@@ -414,7 +419,8 @@ namespace GaoToolkit
                 }
                 _isSelfAdaption = false;
             }
-
+            _drawOffsetX = -(float)_textLayout.DrawBounds.X;
+            _drawOffsetY = -(float)_textLayout.DrawBounds.Y;
 
             _textLayout.SetBrush(0, _text.Length, null);
             if (HasSelection() && _internalFocus)
@@ -432,7 +438,12 @@ namespace GaoToolkit
             }
 
             //绘制文本
-            args.DrawingSession.DrawTextLayout(_textLayout, 0, 0, _canvasTextForeground);
+            using (args.DrawingSession.CreateLayer(_canvasTextOpacity))
+            {
+                args.DrawingSession.DrawTextLayout(_textLayout, _drawOffsetX, _drawOffsetY, _canvasTextForeground);
+            }
+
+
             //绘制光标
             if (_drawCaret && _internalFocus)
             {
@@ -477,7 +488,10 @@ namespace GaoToolkit
                         }
                     }
                 }
-                args.DrawingSession.DrawLine(_caretPosition, _caretEndPosition, Colors.Black);
+                args.DrawingSession.DrawLine(
+                    new Vector2(_caretPosition.X + _drawOffsetX, _caretPosition.Y + _drawOffsetY),
+                    new Vector2(_caretEndPosition.X + _drawOffsetX, _caretEndPosition.Y + _drawOffsetY),
+                    Colors.Black);
             }
 
 
@@ -585,7 +599,7 @@ namespace GaoToolkit
             //else if (isContains)
             //{
             //    SetInternalFocus();
-                
+
             //}
             //e.Handled = true;
         }
@@ -675,7 +689,7 @@ namespace GaoToolkit
                     _canUseCtrlX = true;
                     break;
             }
-         }
+        }
 
         private void CoreWindow_KeyDown(CoreWindow sender, KeyEventArgs args)
         {
@@ -870,7 +884,7 @@ namespace GaoToolkit
             {
                 range.StartCaretPosition = GetHitIndex(
                     new Point(
-                        _caretPosition.X -1,
+                        _caretPosition.X - 1,
                         _caretPosition.Y - Math.Abs(_caretEndPosition.Y - _caretPosition.Y) / 2));
                 if (!_coreWindow.GetKeyState(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down))
                 {
@@ -911,7 +925,7 @@ namespace GaoToolkit
                 range.EndCaretPosition = GetHitIndex(
                     new Point(
                         _caretEndPosition.X - 1,
-                         _caretPosition.Y + Math.Abs(_caretEndPosition.Y - _caretPosition.Y) / 2));
+                        _caretEndPosition.Y + Math.Abs(_caretEndPosition.Y - _caretPosition.Y) / 2));
                 if (!_coreWindow.GetKeyState(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down))
                 {
                     range.StartCaretPosition = range.EndCaretPosition;
@@ -952,7 +966,7 @@ namespace GaoToolkit
                 var dp = new DataPackage();
                 dp.SetText(
                     _text.Substring(
-                        range.StartCaretPosition, 
+                        range.StartCaretPosition,
                         range.EndCaretPosition - range.StartCaretPosition));
                 Clipboard.SetContent(dp);
             }
@@ -960,7 +974,7 @@ namespace GaoToolkit
 
         async void KeyCtrlVPressed(CoreTextRange range)
         {
-            var vstr =   await Clipboard.GetContent()?.GetTextAsync();
+            var vstr = await Clipboard.GetContent()?.GetTextAsync();
             ReplaceText(range, vstr ?? "");
         }
 
@@ -982,7 +996,7 @@ namespace GaoToolkit
 
         private int GetHitIndex(Point mouseOverPt)
         {
-           var tans = Vector2.Transform(mouseOverPt.ToVector2(), _uiAdaptInvert);
+            var tans = Vector2.Transform(mouseOverPt.ToVector2(), _uiAdaptInvert);
             CanvasTextLayoutRegion textLayoutRegion;
             bool isTrailing = true;
             var hasHit = _textLayout.HitTest(
@@ -1000,7 +1014,7 @@ namespace GaoToolkit
         }
 
         //设置焦点
-       public void SetInternalFocus()
+        public void SetInternalFocus()
         {
             if (!_internalFocus)
             {
