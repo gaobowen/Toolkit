@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GaoToolkit;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace TestApp
         public MainPage()
         {
             this.InitializeComponent();
+            var ftx = new FreeTextBox();
         }
     }
 }
